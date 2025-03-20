@@ -1,5 +1,5 @@
 $(document).ready(function() {
-
+    $("#inputCep").mask("99999-999");
     function limpa_formulário_cep() {
         $("#inputAddress").val("");
         $("#inputDistrict").val("");
@@ -33,10 +33,6 @@ $(document).ready(function() {
                     }
                 });
             } 
-            else {
-                limpa_formulário_cep();
-                alert("Formato de CEP inválido.");
-            }
         } 
         else {
             limpa_formulário_cep();
