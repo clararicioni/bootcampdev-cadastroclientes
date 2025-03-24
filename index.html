@@ -31,6 +31,7 @@
                     <div class="mb-3 col-md-3">
                         <label for="inputCep" class="form-label">Pesquise pelo CEP:</label>
                         <input type="text" class="form-control" id="inputCep" required>
+                        <small id="cepError" class="text-danger"></small> 
                     </div>
                     <div class="row mb-3">
                         <div class="col-md-9">
@@ -68,24 +69,13 @@
                                 <tr>
                                     <th scope="col">#</th>
                                     <th scope="col">Nome Completo</th>
-                                    <th scope="col">Endereço</th>
-                                    <th scope="col">CEP</th>
+                                    <th scope="col" class="d-none d-md-table-cell">Endereço</th>
+                                    <th scope="col" class="d-none d-md-table-cell">CEP</th>
                                     <th scope="col" class="d-none d-md-table-cell">Bairro</th>
                                     <th scope="col" class="d-none d-md-table-cell">Cidade</th>
                                     <th scope="col" class="d-none d-md-table-cell">Estado</th>
                                 </tr>
                             </thead>
-                            <tbody>
-                                <tr>
-                                    <td>1</td>
-                                    <td>João Silva</td>
-                                    <td>Rua das Flores, 123</td>
-                                    <td>12345-678</td>
-                                    <td>Centro</td>
-                                    <td>São Paulo</td>
-                                    <td>SP</td>
-                                </tr>
-                            </tbody>
                         </table>
                     </div>
                 </div>

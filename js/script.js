@@ -1,55 +1,55 @@
 $(document).ready(function () {
     $("#inputCep").mask("99999-999");
 
-    function limpa_form() {
-        $("#inputName").val("");
-        $("#inputSurname").val("");
-        $("#inputCep").val("");
-        $("#inputAddress").val("");
-        $("#inputDistrict").val("");
-        $("#inputCity").val("");
-        $("#inputState").val("");
-        $("#inputNumber").val("");
+    function limpaCampos(campos) {
+        campos.forEach(campo => $(campo).val(""));
     }
-    function limpa_cep(){
-        $("#inputCep").val("");
-        $("#inputAddress").val("");
-        $("#inputDistrict").val("");
-        $("#inputCity").val("");
-        $("#inputState").val("");
-        $("#inputNumber").val("");
-    }
-    function block_number(){
-        $("#inputNumber").prop("disabled", true);
+
+    function setCamposEndereco(dados = {}) {
+        $("#inputAddress").val(dados.logradouro || "");
+        $("#inputDistrict").val(dados.bairro || "");
+        $("#inputCity").val(dados.localidade || "");
+        $("#inputState").val(dados.uf || "");
+        $("#inputNumber").prop("disabled", !dados.logradouro);
     }
 
     $("#inputCep").blur(function () {
-        var cep = $(this).val().replace(/\D/g, '');
-        if (cep !== "") {
-            var validacep = /^[0-9]{8}$/;
-            if (validacep.test(cep)) {
-                $("#inputAddress, #inputDistrict, #inputCity, #inputState").val("...");
-                $.getJSON("https://viacep.com.br/ws/" + cep + "/json/?callback=?", function (dados) {
-                    if (!("erro" in dados)) {
-                        $("#inputAddress").val(dados.logradouro);
-                        $("#inputDistrict").val(dados.bairro);
-                        $("#inputCity").val(dados.localidade);
-                        $("#inputState").val(dados.uf);
-                        $("#inputNumber").prop("disabled", false);
-                    } else {
-                        limpa_cep();
-                        alert("CEP não encontrado.");
-                    }
-                });
-            }
-        } else {
-            limpa_form();
+        var cep = $(this).val().replace(/\D/g, "");
+        $("#cepError").text("");
+        
+        if (!cep) return limpaCampos(["#inputAddress", "#inputDistrict", "#inputCity", "#inputState", "#inputNumber"]);
+        
+        if (!/^[0-9]{8}$/.test(cep)) {
+            limpaCampos(["#inputCep", "#inputAddress", "#inputDistrict", "#inputCity", "#inputState", "#inputNumber"]);
+            return $("#cepError").text("Formato de CEP inválido!");
         }
+        
+        setCamposEndereco({ logradouro: "...", bairro: "...", localidade: "...", uf: "..." });
+        
+        $.getJSON(`https://viacep.com.br/ws/${cep}/json/`)
+            .done((dados) => {
+                if (dados.erro) {
+                    showError("CEP não encontrado.");
+                    return showUserData({});
+                }
+                setCamposEndereco(dados);
+                clearError();
+            })
+            .fail(() => {
+                showError("Erro ao buscar o CEP. Verifique sua conexão.");
+                showUserData({});
+            });
     });
 
     var customers = [];
 
-    function save() {
+    function save(event) {
+        if (event) event.preventDefault();
+        
+        if (!$("#inputAddress").val()) {
+            return $("#cepError").text("Insira um CEP válido antes de salvar.");
+        }
+        
         var customer = {
             id: customers.length + 1,
             name: $("#inputName").val(),
@@ -61,24 +61,53 @@ $(document).ready(function () {
             city: $("#inputCity").val(),
             state: $("#inputState").val()
         };
-
+    
         customers.push(customer);
         addNewRow(customer);
-        limpa_form();
-        block_number();
+        limpaCampos(["#inputName", "#inputSurname", "#inputCep", "#inputAddress", "#inputDistrict", "#inputCity", "#inputState", "#inputNumber"]);
+        $("#inputNumber").prop("disabled", true);
     }
 
     function addNewRow(customer) {
         var table = document.getElementById("customersTable");
         var newRow = table.insertRow();
 
-        newRow.insertCell(0).appendChild(document.createTextNode(customer.id));
-        newRow.insertCell(1).appendChild(document.createTextNode(customer.name + " " + customer.surname));
-        newRow.insertCell(2).appendChild(document.createTextNode(customer.address + ", " + customer.number));
-        newRow.insertCell(3).appendChild(document.createTextNode(customer.cep));
-        newRow.insertCell(4).appendChild(document.createTextNode(customer.district));
-        newRow.insertCell(5).appendChild(document.createTextNode(customer.city));
-        newRow.insertCell(6).appendChild(document.createTextNode(customer.state));
+        newRow.insertCell().appendChild(document.createTextNode(customer.id));
+
+        var cellName = newRow.insertCell();
+        cellName.appendChild(document.createTextNode(customer.name + " " + customer.surname));
+
+        var cellAddress = newRow.insertCell();
+        cellAddress.className = "d-none d-md-table-cell";
+        cellAddress.appendChild(document.createTextNode(customer.address + ", " + customer.number));
+
+        var cellCep = newRow.insertCell();
+        cellCep.className = "d-none d-md-table-cell";
+        cellCep.appendChild(document.createTextNode(customer.cep));
+
+        var cellDistrict = newRow.insertCell();
+        cellDistrict.className = "d-none d-md-table-cell";
+        cellDistrict.appendChild(document.createTextNode(customer.district));
+
+        var cellCity = newRow.insertCell();
+        cellCity.className = "d-none d-md-table-cell";
+        cellCity.appendChild(document.createTextNode(customer.city));
+
+        var cellState = newRow.insertCell();
+        cellState.className = "d-none d-md-table-cell";
+        cellState.appendChild(document.createTextNode(customer.state));
+    }
+
+    function showUserData(data) {
+        setCamposEndereco(data);
+    }
+
+    function showError(message) {
+        $("#cepError").text(message);
+    }
+
+    function clearError() {
+        $("#cepError").text("");
     }
 
     window.save = save;
